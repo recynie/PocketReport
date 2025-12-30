@@ -11,7 +11,8 @@ def save_report(
     content: str,
     output_path: Optional[str] = None,
     report_title: Optional[str] = None,
-    timestamp: bool = True
+    timestamp: bool = True,
+    output_dir: Optional[str] = None
 ) -> str:
     """
     Save report content to a file.
@@ -21,6 +22,7 @@ def save_report(
         output_path: Path where to save the file (if None, generates automatic name)
         report_title: Title of the report (used for automatic filename)
         timestamp: Whether to add timestamp to filename
+        output_dir: Directory to save the report (if output_path is None, used to construct path)
         
     Returns:
         Path to the saved file
@@ -40,7 +42,11 @@ def save_report(
         else:
             filename = f"{title_slug}.md"
         
-        output_path = os.path.join(".", "output", filename)
+        # Determine output directory
+        if output_dir is None:
+            output_dir = os.environ.get("OUTPUT_DIR", "./output")
+        
+        output_path = os.path.join(output_dir, filename)
     
     # Ensure directory exists
     output_dir = os.path.dirname(output_path)

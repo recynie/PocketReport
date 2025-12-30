@@ -4,3 +4,4 @@ env
 pocketflow-docs
 test_materials
 __pycache__
+output*

@@ -40,6 +40,39 @@ def create_academic_report_flow() -> Flow:
     return flow
 
 
+def create_academic_report_flow_with_outline(outline_file: str) -> Flow:
+    """
+    Create a flow that uses a pre‑existing outline file.
+    Skips the ArchitectNode (outline generation) and loads outline directly.
+    
+    Args:
+        outline_file: Path to existing outline file (YAML/JSON)
+    
+    Returns:
+        Flow object configured to use the provided outline
+    """
+    # Create nodes
+    load_materials_node = LoadMaterialsNode()
+    analyst_node = AnalystNode(max_retries=3)
+    writer_node = WriterNode(max_retries=3)
+    assemble_report_node = AssembleReportNode()
+    print_summary_node = PrintSummaryNode()
+    
+    # Connect nodes: materials → analysis → writing → assembly → summary
+    load_materials_node >> analyst_node
+    analyst_node >> writer_node
+    writer_node >> assemble_report_node
+    assemble_report_node >> print_summary_node
+    
+    # Create flow starting with load materials node
+    flow = Flow(start=load_materials_node)
+    
+    # Store outline file in flow parameters
+    flow.set_params({"outline_file": outline_file})
+    
+    return flow
+
+
 def create_minimal_flow() -> Flow:
     """
     Create a minimal flow for testing (skips writing chapters).

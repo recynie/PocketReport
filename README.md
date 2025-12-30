@@ -17,9 +17,13 @@ The system follows the Pocket Flow framework for orchestration and uses OpenAI-c
 - **Multi-Agent Architecture**: Three specialized agents working in sequence
 - **Flow-Based Orchestration**: Uses Pocket Flow for robust workflow management
 - **Structured Outputs**: Pydantic models ensure consistent data structures
-- **Markdown Input/Output**: Reads markdown files, outputs formatted academic reports
+- **Multi-Format Input**: Reads markdown files and converts PDF, DOCX, PPTX, Excel, images, audio, HTML, and more to markdown using MarkItDown
+- **Hierarchical Outlines**: Supports multi‑level report structures (chapters → sections → subsections)
+- **Reusable Outlines**: Save and load outlines as YAML/JSON files for manual editing and reuse
+- **Intermediate Results**: All conversion metadata, analysis summaries, and outlines saved to organized output folders
 - **Configurable LLM Backend**: Supports any OpenAI-compatible API (GPT-4o, DeepSeek, OpenRouter, etc.)
 - **Batch Processing**: Efficiently processes multiple chapters in parallel
+- **Conversion Caching**: Caches file conversions to avoid redundant processing
 
 ## Installation
 
@@ -59,8 +63,8 @@ echo "LLM_BASE_URL=https://api.openai.com/v1" >> .env  # Optional
 ### Command Line Interface
 
 ```bash
-# Generate a full report
-python -m pocketreport.main --topic "Machine Learning in Healthcare" --materials ./research_papers
+# Generate a full report (converts non‑markdown files automatically)
+python -m pocketreport.main --topic "Machine Learning in Healthcare" --materials ./research_papers --output ./output_report
 
 # Generate only the outline (for planning)
 python -m pocketreport.main --topic "Climate Change" --materials ./docs --outline-only
@@ -70,6 +74,15 @@ python -m pocketreport.main --topic "Quantum Computing" --materials ./papers --m
 
 # List available markdown files
 python -m pocketreport.main --list --materials ./research_papers
+
+# Use a pre‑generated outline file (skip outline generation)
+python -m pocketreport.main --topic "t-SNE Algorithm" --materials ./papers --outline-file ./output/outline.yaml
+
+# Disable conversion caching (force re‑conversion of all files)
+python -m pocketreport.main --topic "Test Topic" --materials ./mixed_files --no-cache
+
+# Skip intermediate results (analysis, outline, conversion info)
+python -m pocketreport.main --topic "Test Topic" --materials ./docs --no-intermediate
 ```
 
 ### Programmatic API
@@ -95,11 +108,14 @@ report_path = shared["output"]["path"]
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--topic` | Report topic/title | Required |
-| `--materials` | Directory with markdown files | `./materials` |
-| `--output` | Output directory for reports | `./output` |
-| `--minimal` | Run minimal flow (skip writing) | `False` |
-| `--outline-only` | Only generate outline | `False` |
-| `--list` | List markdown files and exit | `False` |
+| `--materials` | Directory with materials (markdown + other formats) | `./materials` |
+| `--output` | Output directory for reports and intermediates | `./output` |
+| `--minimal` | Run minimal flow (skip chapter writing) | `False` |
+| `--outline-only` | Only generate outline (no writing) | `False` |
+| `--outline-file` | Use existing outline file (YAML/JSON) | None |
+| `--no-cache` | Disable caching of file conversions | `False` |
+| `--no-intermediate` | Skip saving intermediate results | `False` |
+| `--list` | List available files and exit | `False` |
 | `--env-file` | Path to .env configuration file | None |
 
 ## Project Structure
@@ -114,9 +130,12 @@ pocket-report/
 │   └── utils/            # Utility functions
 │       ├── __init__.py
 │       ├── call_llm.py   # LLM API calls
-│       ├── load_markdown.py # File loading
+│       ├── load_markdown.py # Markdown file loading
+│       ├── load_materials.py # Multi‑format file loading & conversion
 │       ├── save_report.py # Report saving
-│       └── models.py     # Pydantic models
+│       ├── save_intermediate.py # Intermediate results saving
+│       ├── outline_serializer.py # Outline YAML/JSON serialization
+│       └── models.py     # Pydantic models (including hierarchical sections)
 ├── docs/
 │   └── design.md         # System design document
 ├── test_materials/       # Sample markdown files
@@ -163,8 +182,12 @@ Core dependencies:
 - `pydantic`: Data validation and settings management
 - `requests`: HTTP client for API calls
 - `python-dotenv`: Environment variable management
+- `markitdown[all]`: File format conversion (PDF, DOCX, PPTX, images, audio, etc.)
+- `pyyaml`: YAML serialization for outlines
 
 See `requirements.txt` for complete list.
+
+**Note**: For file conversion features, install with `pip install 'markitdown[all]'`.
 
 ## Testing
 
@@ -194,17 +217,19 @@ This tests:
 - **Context Window**: Limited by LLM context size (mitigated by summarization)
 - **API Dependencies**: Requires LLM API access and internet connection
 - **Academic Focus**: Optimized for academic/scientific content
-- **Markdown Input**: Currently only supports markdown format
+- **File Conversion**: Some complex PDF layouts may not convert perfectly
+- **Caching**: Old cached conversion errors may persist (clear with `--no-cache`)
 
 ## Future Enhancements
 
 Potential improvements:
-- Support for PDF and other document formats
+- Enhanced PDF conversion quality for complex layouts
 - Vector database integration for larger document sets
 - Multi-language support
 - Citation management and bibliography generation
-- Interactive editing and revision cycles
+- Interactive outline editing interface
 - Performance optimizations for large document sets
+- Plugin system for custom file converters
 
 ## License
 
