@@ -1,0 +1,17 @@
+# Core dependencies
+pydantic>=2.0.0
+requests>=2.28.0
+python-dotenv>=1.0.0
+
+# Development and testing
+pytest>=7.0.0
+black>=23.0.0
+mypy>=1.0.0
+
+# Note: pocketflow is already available in the project as pocketflow.py
+# If using as a separate package, add: pocketflow>=0.1.0
+
+# Optional: For enhanced functionality
+# openai>=1.0.0  # If using OpenAI SDK directly
+# chromadb>=0.4.0  # For future vector database integration
+# pdfplumber>=0.10.0  # For PDF support
