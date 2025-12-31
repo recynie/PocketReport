@@ -233,11 +233,7 @@ Potential improvements:
 
 ## License
 
-[Specify license]
-
-## Contributing
-
-[Contribution guidelines]
+MIT license
 
 ## Acknowledgments
 

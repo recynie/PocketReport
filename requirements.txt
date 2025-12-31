@@ -8,7 +8,6 @@ pytest>=7.0.0
 black>=23.0.0
 mypy>=1.0.0
 
-# Note: pocketflow is already available in the project as pocketflow.py
-# If using as a separate package, add: pocketflow>=0.1.0
+pocketflow>=0.0.3
 
 markitdown[all]==0.1.4
