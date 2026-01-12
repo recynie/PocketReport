@@ -6,8 +6,10 @@ from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 
 
+# DEPRECATED: SectionType enum is no longer used. Kept for backward compatibility.
+# Heading levels are now determined by index dot count (e.g., "1" = h1, "1.1" = h2, "1.1.1" = h3)
 class SectionType(str, Enum):
-    """Type of section in the report outline."""
+    """DEPRECATED: Type of section in the report outline."""
     CHAPTER = "chapter"
     SECTION = "section"
     SUBSECTION = "subsection"
@@ -15,11 +17,10 @@ class SectionType(str, Enum):
 
 class Section(BaseModel):
     """Represents a hierarchical section in the report outline."""
-    type: SectionType = Field(SectionType.SECTION, description="Type of section")
     index: str = Field(..., description="Hierarchical index (e.g., '1', '1.1', '1.2.3')")
     title: str = Field(..., description="Title of the section")
     description: str = Field(
-        ..., 
+        ...,
         description="Detailed instructions on what this section should cover, based on input materials"
     )
     
@@ -57,6 +58,26 @@ class Section(BaseModel):
             if found:
                 return found
         return None
+    
+    def get_heading_level(self) -> int:
+        """Calculate heading level based on index dot count."""
+        # Level 1 for top-level sections (no dot or single number)
+        # "1" -> level 1, "1.1" -> level 2, "1.1.1" -> level 3, etc.
+        dot_count = self.index.count('.')
+        return min(dot_count + 1, 6)  # Cap at h6 per Markdown spec
+    
+    def get_heading_markdown(self, include_index: bool = False) -> str:
+        """Generate markdown heading for this section.
+        
+        By default, headings only contain the title, not the index.
+        Set include_index=True to include index like "1.2.1" in heading.
+        """
+        level = self.get_heading_level()
+        heading = '#' * level
+        if include_index:
+            return f"{heading} {self.index} {self.title}"
+        else:
+            return f"{heading} {self.title}"
 
 
 # Forward reference fix
@@ -98,6 +119,26 @@ class ReportOutline(BaseModel):
                 "content": leaf.content
             })
         return chapters
+    
+    def to_legacy(self) -> "LegacyReportOutline":
+        """
+        Convert hierarchical outline to legacy flat outline.
+        Each top-level section becomes a chapter with integer index.
+        """
+        chapters = []
+        for i, section in enumerate(self.sections, start=1):
+            chapter = Chapter(
+                index=i,
+                title=section.title,
+                description=section.description,
+                content=section.content
+            )
+            chapters.append(chapter)
+        
+        return LegacyReportOutline(
+            title=self.title,
+            chapters=chapters
+        )
 
 
 # Legacy models (kept for compatibility during transition)
@@ -128,6 +169,26 @@ class LegacyReportOutline(BaseModel):
             if chapter.index == index:
                 return chapter
         return None
+    
+    def to_hierarchical(self) -> "ReportOutline":
+        """
+        Convert legacy flat outline to hierarchical outline.
+        Each chapter becomes a top-level section with index as string.
+        """
+        sections = []
+        for chapter in self.chapters:
+            section = Section(
+                index=str(chapter.index),
+                title=chapter.title,
+                description=chapter.description,
+                content=chapter.content
+            )
+            sections.append(section)
+        
+        return ReportOutline(
+            title=self.title,
+            sections=sections
+        )
 
 
 class AnalysisSummary(BaseModel):
@@ -161,7 +222,11 @@ class Report(BaseModel):
     outline: Optional[ReportOutline] = None
     
     def assemble(self) -> str:
-        """Assemble the complete report in markdown format with proper heading levels."""
+        """Assemble the complete report in markdown format with proper heading levels.
+        
+        Note: The report title is NOT included as a heading in the content.
+        Top-level sections (index like "1", "2") become h1 headings.
+        """
         from collections import defaultdict
         
         # Build hierarchy from outline if available
@@ -169,33 +234,64 @@ class Report(BaseModel):
             return self._assemble_from_outline()
         
         # Fallback: flat sections sorted by index
-        lines = [f"# {self.title}\n"]
+        lines = []
         sorted_indices = sorted(self.sections.keys())
         for idx in sorted_indices:
             content = self.sections[idx]
             # Determine heading level based on dot count in index
+            # "1" -> h1, "1.1" -> h2, "1.1.1" -> h3, etc.
             level = idx.count('.') + 1
             heading = '#' * min(level, 6)  # limit to h6
-            lines.append(f"{heading} {idx} {content.splitlines()[0] if content else ''}")
-            lines.append(content if content else "")
+            
+            # Extract first line for heading if content exists
+            first_line = ""
+            if content:
+                # Get first non-empty line
+                for line in content.splitlines():
+                    if line.strip():
+                        first_line = line.strip()
+                        break
+            
+            # Add heading with title only (no index)
+            if first_line and first_line.startswith('#'):
+                # Content already includes heading, don't add duplicate
+                lines.append(content)
+            else:
+                # Use first line as heading text, or empty string if no content
+                heading_text = first_line if first_line else ''
+                lines.append(f"{heading} {heading_text}")
+                if content:
+                    lines.append(content)
+            
             lines.append("")  # Add blank line between sections
         return "\n".join(lines)
     
     def _assemble_from_outline(self) -> str:
         """Assemble report by traversing outline hierarchy."""
-        lines = [f"# {self.title}\n"]
+        lines = []
         
-        def traverse(section: Section, depth: int = 1):
-            heading = '#' * (depth + 1)  # +1 because title is h1
-            lines.append(f"{heading} {section.index} {section.title}")
-            if section.index in self.sections:
-                content = self.sections[section.index]
+        def traverse(section: Section):
+            # Use section's own heading calculation (without index)
+            heading_markdown = section.get_heading_markdown(include_index=False)
+            
+            # Check if content already includes a heading
+            content = self.sections.get(section.index, "")
+            if content and content.strip().startswith('#'):
+                # Content already has heading, use it as-is
+                lines.append(content)
+            else:
+                # Add heading and content
+                lines.append(heading_markdown)
                 if content:
                     lines.append(content)
-            lines.append("")
+            
+            lines.append("")  # Blank line after section
+            
+            # Recursively process subsections
             for sub in section.subsections:
-                traverse(sub, depth + 1)
+                traverse(sub)
         
         for top_section in self.outline.sections:
-            traverse(top_section, depth=1)
+            traverse(top_section)
         
+        return "\n".join(lines)

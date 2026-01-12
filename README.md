@@ -24,6 +24,9 @@ The system follows the Pocket Flow framework for orchestration and uses OpenAI-c
 - **Configurable LLM Backend**: Supports any OpenAI-compatible API (GPT-4o, DeepSeek, OpenRouter, etc.)
 - **Batch Processing**: Efficiently processes multiple chapters in parallel
 - **Conversion Caching**: Caches file conversions to avoid redundant processing
+- **Centralized Prompt Management**: All LLM prompts stored in `config/prompts.toml` for easy modification
+- **Report Metadata**: Final reports include YAML frontmatter with title, subtitle, abstract, and author information
+- **Customizable Metadata Template**: YAML template in `config/report_metadata.yaml` for standard academic report headers
 
 ## Installation
 
@@ -57,6 +60,46 @@ echo "LLM_API_KEY=your_api_key_here" > .env
 echo "LLM_MODEL=gpt-4o" >> .env  # Optional
 echo "LLM_BASE_URL=https://api.openai.com/v1" >> .env  # Optional
 ```
+
+## Configuration
+
+### LLM Prompts
+
+All prompts used by the three agents (Analyst, Architect, Writer) are centralized in `config/prompts.toml`:
+
+- **Analyst Agent**: `[analyst]` section - Summarizes raw materials into structured knowledge context
+- **Architect Agent**: `[architect]` section - Creates hierarchical report outlines based on topics
+- **Writer Agent**: `[writer]` section - Writes academic-quality content for each section
+- **Metadata Generation**: `[metadata_generation]` section - Generates title, subtitle, and abstract
+
+Each section contains:
+- `system_prompt`: The system instruction for the LLM
+- `user_prompt_template`: The user prompt template with placeholders (e.g., `{topic}`, `{raw_content}`)
+
+**To modify prompts**, edit `config/prompts.toml` directly. Prompts are loaded dynamically at runtime, so changes take effect immediately.
+
+### Report Metadata Template
+
+Academic reports include YAML frontmatter (header) with metadata. The template is stored in `config/report_metadata.yaml`:
+
+```yaml
+title: ""
+subtitle: ""
+abstract: ""
+info:
+  姓名: "Zhang San"  # Student/Author name
+  学号: "20230001"   # Student ID
+  课程: "AI Introduction"  # Course name
+  日期: "2025-01-12"  # Date
+  指导教师: "Li Si"  # Advisor name
+bibliography: ""
+```
+
+**To customize default metadata**, edit `config/report_metadata.yaml`. The system will:
+1. Load this template
+2. Populate `title`, `subtitle`, and `abstract` based on report content
+3. Allow user to override `info` fields
+4. Prepend the YAML frontmatter to the final markdown report
 
 ## Usage
 

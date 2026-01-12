@@ -1,7 +1,7 @@
 """
 Flow orchestration for the academic report writing system.
 """
-from pocketreport.pocketflow import Flow
+from pocketflow import Flow
 from pocketreport.nodes import (
     LoadMaterialsNode,
     AnalystNode,

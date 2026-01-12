@@ -1,0 +1,20 @@
+# Report Metadata Template
+# This template is loaded and populated with actual values during report assembly
+# The title, subtitle, and abstract fields are automatically generated or provided by the user
+# The info section contains student/author information
+
+title: ""
+subtitle: ""
+abstract: ""
+info:
+  - key: 姓名
+    value: "张三"
+  - key: 学号
+    value: "20230001"
+  - key: 课程
+    value: "人工智能导论"
+  - key: 日期
+    value: "2025年1月12日"
+  - key: 指导教师
+    value: "李四"
+bibliography: ""

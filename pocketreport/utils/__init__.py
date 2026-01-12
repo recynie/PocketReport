@@ -14,6 +14,20 @@ from .save_intermediate import (
     load_intermediate
 )
 from .outline_serializer import outline_serializer
+from .prompt_loader import (
+    get_prompt,
+    get_system_prompt,
+    get_user_prompt_template,
+    get_user_prompt,
+    clear_cache as clear_prompt_cache
+)
+from .metadata_loader import (
+    load_metadata_template,
+    update_metadata,
+    metadata_to_yaml,
+    generate_frontmatter,
+    append_frontmatter_to_report
+)
 from .models import (
     Chapter,
     ReportOutline,
@@ -50,6 +64,20 @@ __all__ = [
     
     # Outline serialization
     'outline_serializer',
+    
+    # Prompt loading utilities
+    'get_prompt',
+    'get_system_prompt',
+    'get_user_prompt_template',
+    'get_user_prompt',
+    'clear_prompt_cache',
+    
+    # Metadata loading utilities
+    'load_metadata_template',
+    'update_metadata',
+    'metadata_to_yaml',
+    'generate_frontmatter',
+    'append_frontmatter_to_report',
     
     # Models
     'Chapter',

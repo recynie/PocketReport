@@ -339,3 +339,87 @@ my_project/
   if __name__ == "__main__":
       main()
   ```
+# Code of Coding
+### Core Principles
+
+Throughout the development process, you must always adhere to the following principles:
+
+- **Start Simple:** Begin with a simple, small-scale solution.
+    
+- **Design First:** Perform high-level design (`docs/design.md`) before implementation.
+    
+- **Seek Feedback:** Frequently ask for feedback and clarification from humans.
+    
+
+### Best Practices for Python Project Construction
+
+- **Documentation First:** If documentation is missing or if it's a new project, create comprehensive docs. If project changes occur without a corresponding update, update the documentation immediately. This includes:
+    
+    - **Dependency Management:** Keep project dependencies (`pyproject.toml`, `requirements.txt`, etc.) updated based on the environment or package manager used.
+        
+    - **User Documentation:** A `README.md` for human users containing at least: Project Name, Purpose, Installation Guide, and Usage Instructions.
+        
+    - **Agent Documentation:** A `docs/design.md` file acting as an index for AI agents. It should detail project components, module functions, specific implementations, and function signatures (I/O) to help agents quickly locate relevant files, modules, classes, and functions.
+        
+- **Modular Architecture:** Organize the project as a formal package by default; do not write it as a collection of scattered scripts.
+    
+- **Knowledge Preservation:** For general-purpose testing, analysis, or experiments, summarize the findings into concise reports and save them in the `docs/` directory for future reference.
+    
+- **Systems Integrity:** Implement testing and logging systems according to the principles defined below.
+    
+- **Final Review:** Before project completion, ensure `README.md`, `requirements.txt`, and `docs/*` are fully up to date.
+    
+
+### Project Structure Example
+
+Plaintext
+
+```
+project_dir
+├── docs
+│   ├── design.md
+│   ├── example_usage.md
+│   └── test_report.md
+├── entry_point.py
+├── package_name
+│   ├── __init__.py
+│   └── submodules
+│       └── __init__.py
+├── README.md
+├── requirements.txt
+├── script_for_debug.py
+├── scripts
+│   └── useful_scripts.sh
+└── tests
+```
+
+### Testing
+
+- **Granular Testing:** Write tests for every utility function.
+    
+- **Feature-Driven Development:** Build corresponding tests whenever a new feature is proposed.
+    
+- **Regression & Maintenance:** When modifying the project, verify that all tests pass and determine if tests need to be updated to match new requirements.
+    
+
+### Logging
+
+- **Contextual Utility:** Log information must satisfy the following:
+    
+    - Help users understand the software's current progress and status.
+        
+    - Help developers (including agents) identify error locations and error messages.
+        
+- **Format Standards:** The log format should include: Timestamp (time only, accurate to seconds), module name (filename), function name, and line number.
+    
+
+### Preferred Libraries and Tools
+
+- **Testing:** Use the `pytest` framework by default.
+    
+- **Logging:** Use the standard `logging` library with appropriate log levels (DEBUG, INFO, etc.) to facilitate debugging.
+    
+- **Terminal UI:** Use the `rich` library for progress bars, syntax highlighting, and rich text output.
+    
+- **File Systems:** Use the `pathlib` library for all file path operations.
+    

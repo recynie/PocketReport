@@ -158,8 +158,10 @@ def load_outline_json(file_path: Union[str, Path]) -> ReportOutline:
 def _outline_to_dict(outline: ReportOutline) -> Dict[str, Any]:
     """Convert ReportOutline to a serializable dict."""
     def section_to_dict(section: Section) -> Dict[str, Any]:
+        # Type field is deprecated, but include a default for backward compatibility
+        # Section objects no longer have a type attribute
         return {
-            "type": section.type.value,
+            "type": SectionType.SECTION.value,  # Default for backward compatibility
             "index": section.index,
             "title": section.title,
             "description": section.description,
@@ -176,8 +178,9 @@ def _outline_to_dict(outline: ReportOutline) -> Dict[str, Any]:
 def _dict_to_outline(data: Dict[str, Any]) -> ReportOutline:
     """Convert dict to ReportOutline."""
     def dict_to_section(section_dict: Dict[str, Any]) -> Section:
+        # Type field is deprecated and ignored
+        # Section class no longer accepts type parameter
         return Section(
-            type=SectionType(section_dict["type"]),
             index=section_dict["index"],
             title=section_dict["title"],
             description=section_dict["description"],
@@ -205,7 +208,6 @@ def convert_legacy_to_hierarchical(legacy_outline: LegacyReportOutline) -> Repor
     sections = []
     for chapter in legacy_outline.chapters:
         section = Section(
-            type=SectionType.CHAPTER,
             index=str(chapter.index),
             title=chapter.title,
             description=chapter.description,
@@ -314,25 +316,22 @@ if __name__ == "__main__":
     print("Testing outline serializer...")
     
     # Create a test hierarchical outline
-    from .models import Section, SectionType, ReportOutline
+    from .models import Section, ReportOutline
     
     outline = ReportOutline(
         title="Test Report",
         sections=[
             Section(
-                type=SectionType.CHAPTER,
                 index="1",
                 title="Introduction",
                 description="Introduce the topic",
                 subsections=[
                     Section(
-                        type=SectionType.SECTION,
                         index="1.1",
                         title="Background",
                         description="Provide background context"
                     ),
                     Section(
-                        type=SectionType.SECTION,
                         index="1.2",
                         title="Problem Statement",
                         description="Define the problem"
@@ -340,7 +339,6 @@ if __name__ == "__main__":
                 ]
             ),
             Section(
-                type=SectionType.CHAPTER,
                 index="2",
                 title="Methodology",
                 description="Describe the methods used"
